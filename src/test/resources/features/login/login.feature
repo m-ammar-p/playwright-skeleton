@@ -1,7 +1,7 @@
 @Regression
 Feature: Login with an user
 
-  @severity=blocker
+  @severity=blocker @develop @Smoke
   Scenario Outline: Verify user able to login
     Given I log in with <username> username
     Then  I check login is correct
