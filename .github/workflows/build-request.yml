@@ -1,0 +1,71 @@
+name: Playwright Develop Tests PR
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Java
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # Step 3: Running tests
+      - name: Run Develop Tests
+        run: mvn clean test -Pdev -D"cucumber.filter.tags=@develop"
+
+      # Step 4: Upload Allure results
+      - name: Upload Allure Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: allure-results
+          path: '**/allure-results/**'
+
+      # Step 5: Upload test report artifacts (optional)
+      - name: Upload Test Report Artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: reports
+          path: '**/surefire-reports/*.xml'
+
+  generate_report:
+    name: Generate Test Results
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [ tests ]
+
+    steps:
+      # Step 1: Download Allure Results
+      - name: Download Allure Results
+        uses: actions/download-artifact@v3
+        id: download-allure
+        with:
+          name: allure-results
+          path: allure-results
+
+      # Step 2: Generate Allure Report
+      - name: Generate Allure Report
+        run: mvn allure:report
+
+      # Step 3: Deploy Allure Report to GitHub Pages
+      - name: Deploy Allure Report
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: target/site/allure-maven-plugin
+          publish_branch: gh-pages
+          disable_nojekyll: true
