@@ -17,14 +17,8 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: '21'
-
-      - name: Cache Maven dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          distribution: 'temurin'
+          cache: 'maven'
 
       - name: Run Develop Tests
         run: mvn clean test -Pdev -Dgroups=develop
