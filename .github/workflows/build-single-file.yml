@@ -73,16 +73,23 @@ jobs:
       - name: Generate Allure Report
         run: mvn allure:report
 
-      # Step 4: Generate Single-File Allure Report
+      # Step 4: Set Up Node.js for Single-File Conversion
+      - name: Set Up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      # Step 5: Install inline-source-cli
+      - name: Install inline-source-cli
+        run: npm install -g inline-source-cli
+
+      # Step 6: Generate Single-File Allure Report
       - name: Generate Single-File Allure Report
         run: |
           mkdir -p target/single-file-report
-          wget --convert-links --page-requisites --no-parent \
-               --adjust-extension -P target/single-file-report \
-               file://$(pwd)/target/site/allure-maven-plugin/index.html
-        shell: bash
+          inline-source target/site/allure-maven-plugin/index.html > target/single-file-report/index.html
 
-      # Step 5: Deploy Single-File Allure Report
+      # Step 7: Deploy Single-File Allure Report
       - name: Deploy Single-File Allure Report
         uses: peaceiris/actions-gh-pages@v3
         with:
