@@ -73,14 +73,16 @@ jobs:
       - name: Generate Allure Report
         run: mvn allure:report
 
-      # Step 4: Deploy Allure Report
-      - name: Deploy Allure Report
+      # Step 4: Deploy Allure Report and Allure Results
+      - name: Deploy Allure Report and Results
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: target/site/allure-maven-plugin
+          additional_files: target/allure-results
           publish_branch: gh-pages
           disable_nojekyll: true
+
 
       # Step 5: Upload Allure Results for Server
       - name: Upload Allure Results Folder for Server
