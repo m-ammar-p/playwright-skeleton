@@ -10,11 +10,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code
+      # Checkout code
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Step 2: Set up Java
+      # Set up Java
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
@@ -22,15 +22,15 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # Step 3: Clean Workspace
+      # Clean workspace
       - name: Clean Workspace
         run: mvn clean
 
-      # Step 4: Run Develop Tests
+      # Run tests
       - name: Run Develop Tests
         run: mvn test -Pdev -D"cucumber.filter.tags=@develop"
 
-      # Step 5: Verify Allure Results
+      # Verify Allure results
       - name: Check Allure Results
         run: |
           echo "Listing target folder contents:"
@@ -38,7 +38,7 @@ jobs:
           echo "Checking allure-results folder contents:"
           ls -R target/allure-results || echo "No allure-results folder found"
 
-      # Step 6: Upload Allure Results for Local Use
+      # Upload Allure results for local use
       - name: Upload Allure Results for Local
         if: always()
         uses: actions/upload-artifact@v3
@@ -46,7 +46,7 @@ jobs:
           name: allure-results
           path: target/allure-results/**
 
-      # Step 7: Upload Test Report Artifacts
+      # Upload test report artifacts
       - name: Upload Test Report Artifacts
         if: always()
         uses: actions/upload-artifact@v3
@@ -61,11 +61,11 @@ jobs:
     needs: [ tests ]
 
     steps:
-      # Step 1: Checkout code to get the POM
+      # Checkout code
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Step 2: Download Allure Results
+      # Download Allure results
       - name: Download Allure Results
         uses: actions/download-artifact@v3
         id: download-allure
@@ -73,15 +73,15 @@ jobs:
           name: allure-results
           path: target/allure-results
 
-      # Step 3: Generate Allure Report
+      # Generate Allure report
       - name: Generate Allure Report
         run: mvn allure:report
 
-      # Step 4: Copy Allure Results to Report Directory
+      # Copy Allure results to publish directory
       - name: Copy Allure Results to Publish Directory
         run: cp -r target/allure-results target/site/allure-maven-plugin/allure-results
 
-      # Step 5: Deploy Allure Report and Results
+      # Deploy Allure report and results
       - name: Deploy Allure Report and Results
         uses: peaceiris/actions-gh-pages@v3
         with:
@@ -90,7 +90,7 @@ jobs:
           publish_branch: gh-pages
           disable_nojekyll: true
 
-      # Step 6: Upload Allure Results for Server
+      # Upload Allure results for server
       - name: Upload Allure Results Folder for Server
         uses: actions/upload-artifact@v3
         with:
