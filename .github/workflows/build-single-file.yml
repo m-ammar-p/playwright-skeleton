@@ -32,7 +32,11 @@ jobs:
 
       # Step 5: Verify Allure Results
       - name: Check Allure Results
-        run: ls -l target/allure-results || echo "No allure-results found"
+        run: |
+          echo "Listing target folder contents:"
+          ls -R target/ || echo "No target folder found"
+          echo "Checking allure-results folder contents:"
+          ls -R target/allure-results || echo "No allure-results folder found"
 
       # Step 6: Upload Allure Results for Local Use
       - name: Upload Allure Results for Local
@@ -73,18 +77,20 @@ jobs:
       - name: Generate Allure Report
         run: mvn allure:report
 
-      # Step 4: Deploy Allure Report and Allure Results
+      # Step 4: Copy Allure Results to Report Directory
+      - name: Copy Allure Results to Publish Directory
+        run: cp -r target/allure-results target/site/allure-maven-plugin/allure-results
+
+      # Step 5: Deploy Allure Report and Results
       - name: Deploy Allure Report and Results
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: target/site/allure-maven-plugin
-          additional_files: target/allure-results
           publish_branch: gh-pages
           disable_nojekyll: true
 
-
-      # Step 5: Upload Allure Results for Server
+      # Step 6: Upload Allure Results for Server
       - name: Upload Allure Results Folder for Server
         uses: actions/upload-artifact@v3
         with:
