@@ -83,24 +83,30 @@ jobs:
       - name: Install Puppeteer
         run: npm install puppeteer
 
-        # Step 6: Generate Single-File Snapshot with Puppeteer
+      # Step 6: Generate Single-File Snapshot with Puppeteer
       - name: Generate Single-File Snapshot
         run: |
           node <<EOF
           const puppeteer = require('puppeteer');
           const fs = require('fs');
+          const path = require('path');
           (async () => {
+            const outputDir = path.resolve('target/single-file-report');
+            if (!fs.existsSync(outputDir)) {
+              fs.mkdirSync(outputDir, { recursive: true });
+            }
             const browser = await puppeteer.launch({
               args: ['--no-sandbox', '--disable-setuid-sandbox']
             });
             const page = await browser.newPage();
             await page.goto('file://$(pwd)/target/site/allure-maven-plugin/index.html', { waitUntil: 'networkidle0' });
             const content = await page.content();
-            fs.writeFileSync('target/single-file-report/index.html', content);
+            fs.writeFileSync(path.join(outputDir, 'index.html'), content);
             await browser.close();
           })();
           EOF
         shell: bash
+
 
 
       # Step 7: Deploy Single-File Allure Report
