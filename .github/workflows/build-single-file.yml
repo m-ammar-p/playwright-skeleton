@@ -73,21 +73,32 @@ jobs:
       - name: Generate Allure Report
         run: mvn allure:report
 
-      # Step 4: Set Up Node.js for Single-File Conversion
+      # Step 4: Set Up Node.js for Puppeteer
       - name: Set Up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '16'
 
-      # Step 5: Install inline-source-cli
-      - name: Install inline-source-cli
-        run: npm install -g inline-source-cli
+      # Step 5: Install Puppeteer
+      - name: Install Puppeteer
+        run: npm install puppeteer
 
-      # Step 6: Generate Single-File Allure Report
-      - name: Generate Single-File Allure Report
+      # Step 6: Generate Single-File Snapshot with Puppeteer
+      - name: Generate Single-File Snapshot
         run: |
-          mkdir -p target/single-file-report
-          inline-source target/site/allure-maven-plugin/index.html > target/single-file-report/index.html
+          node <<EOF
+          const puppeteer = require('puppeteer');
+          const fs = require('fs');
+          (async () => {
+            const browser = await puppeteer.launch();
+            const page = await browser.newPage();
+            await page.goto('file://$(pwd)/target/site/allure-maven-plugin/index.html', { waitUntil: 'networkidle0' });
+            const content = await page.content();
+            fs.writeFileSync('target/single-file-report/index.html', content);
+            await browser.close();
+          })();
+          EOF
+        shell: bash
 
       # Step 7: Deploy Single-File Allure Report
       - name: Deploy Single-File Allure Report
