@@ -28,14 +28,14 @@ jobs:
 
       # Step 4: Run Develop Tests
       - name: Run Develop Tests
-        run: mvn test -Pdev -D"cucumber.filter.tags=@develop" || true
+        run: mvn test -Pdev -D"cucumber.filter.tags=@develop"
 
       # Step 5: Verify Allure Results
       - name: Check Allure Results
         run: ls -l target/allure-results || echo "No allure-results found"
 
-      # Step 6: Upload Allure Results
-      - name: Upload Allure Results
+      # Step 6: Upload Allure Results for Local Use
+      - name: Upload Allure Results for Local
         if: always()
         uses: actions/upload-artifact@v3
         with:
@@ -73,47 +73,18 @@ jobs:
       - name: Generate Allure Report
         run: mvn allure:report
 
-      # Step 4: Set Up Node.js for Puppeteer
-      - name: Set Up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-
-      # Step 5: Install Puppeteer
-      - name: Install Puppeteer
-        run: npm install puppeteer
-
-      # Step 6: Generate Single-File Snapshot with Puppeteer
-      - name: Generate Single-File Snapshot
-        run: |
-          node <<EOF
-          const puppeteer = require('puppeteer');
-          const fs = require('fs');
-          const path = require('path');
-          (async () => {
-            const outputDir = path.resolve('target/single-file-report');
-            if (!fs.existsSync(outputDir)) {
-              fs.mkdirSync(outputDir, { recursive: true });
-            }
-            const browser = await puppeteer.launch({
-              args: ['--no-sandbox', '--disable-setuid-sandbox']
-            });
-            const page = await browser.newPage();
-            await page.goto('file://$(pwd)/target/site/allure-maven-plugin/index.html', { waitUntil: 'networkidle0' });
-            const content = await page.content();
-            fs.writeFileSync(path.join(outputDir, 'index.html'), content);
-            await browser.close();
-          })();
-          EOF
-        shell: bash
-
-
-
-      # Step 7: Deploy Single-File Allure Report
-      - name: Deploy Single-File Allure Report
+      # Step 4: Deploy Allure Report
+      - name: Deploy Allure Report
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: target/single-file-report
+          publish_dir: target/site/allure-maven-plugin
           publish_branch: gh-pages
           disable_nojekyll: true
+
+      # Step 5: Upload Allure Results for Server
+      - name: Upload Allure Results Folder for Server
+        uses: actions/upload-artifact@v3
+        with:
+          name: allure-results-for-server
+          path: target/allure-results
