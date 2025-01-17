@@ -3,8 +3,6 @@ package playwright.skeleton.stepdefinition;
 import com.microsoft.playwright.*;
 import io.cucumber.java.*;
 import playwright.skeleton.cucumber.TestContext;
-
-
 import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.nio.file.Paths;
