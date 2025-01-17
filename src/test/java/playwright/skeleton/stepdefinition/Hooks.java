@@ -9,8 +9,11 @@ import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 public class Hooks {
+
+    private static final Logger LOGGER = Logger.getLogger(Hooks.class.getName());
 
     private static Playwright playwright;
     private static Browser browser;
@@ -83,11 +86,11 @@ public class Hooks {
                 : "https://adactinhotelapp.com/";
 
 // Log the selected environment and URL for debugging
-        System.out.printf("Environment: %s%nUsing base URL: %s%n", env, baseUrl);
+        LOGGER.info(String.format("Environment: %s%nUsing base URL: %s", env, baseUrl));
 
 // Navigate to the base URL
         page.navigate(baseUrl);
-        System.out.println("Test setup complete.");
+        LOGGER.info("Test setup complete.");
     }
 
     @After
@@ -101,13 +104,13 @@ public class Hooks {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Failed to take screenshot: " + e.getMessage());
+            LOGGER.severe("Failed to take screenshot: " + e.getMessage());
         } finally {
             if (context != null) context.close();
             if (browser != null) browser.close();
             if (playwright != null) playwright.close();
         }
-        System.out.println("Test teardown complete.");
+        LOGGER.info("Test teardown complete.");
     }
 
     @AfterStep

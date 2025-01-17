@@ -8,8 +8,12 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Properties;
+import java.util.logging.Logger;
+
 
 public class ConfigFileReader {
+
+    private static final Logger LOGGER = Logger.getLogger(ConfigFileReader.class.getName());
 
     private static final Properties properties = new Properties();
     private static final String ENVIRONMENT = "environment";
@@ -17,7 +21,8 @@ public class ConfigFileReader {
     static {
         // Fetch the environment from system properties (default to "dev" if not set)
         String environment = System.getProperty("env", "dev");
-        System.out.println("Active Environment: " + environment);
+
+        LOGGER.info("Active Environment: " + environment);
 
         if (environment == null || environment.isEmpty()) {
             throw new CompanyException("Environment not specified. Please use the correct Maven profile.");

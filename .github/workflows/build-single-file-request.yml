@@ -1,0 +1,98 @@
+name: Playwright Develop Tests PR
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Set up Java
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # Clean workspace
+      - name: Clean Workspace
+        run: mvn clean
+
+      # Run tests
+      - name: Run Develop Tests
+        run: mvn test -Pdev -D"cucumber.filter.tags=@develop"
+
+      # Verify Allure results
+      - name: Check Allure Results
+        run: |
+          echo "Listing target folder contents:"
+          ls -R target/ || echo "No target folder found"
+          echo "Checking allure-results folder contents:"
+          ls -R target/allure-results || echo "No allure-results folder found"
+
+      # Upload Allure results for local use
+      - name: Upload Allure Results for Local
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: allure-results
+          path: target/allure-results/**
+
+      # Upload test report artifacts
+      - name: Upload Test Report Artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: reports
+          path: target/surefire-reports/*.xml
+
+  generate_report:
+    name: Generate Test Results
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [ tests ]
+
+    steps:
+      # Checkout code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Download Allure results
+      - name: Download Allure Results
+        uses: actions/download-artifact@v3
+        id: download-allure
+        with:
+          name: allure-results
+          path: target/allure-results
+
+      # Generate Allure report
+      - name: Generate Allure Report
+        run: mvn allure:report
+
+      # Copy Allure results to publish directory
+      - name: Copy Allure Results to Publish Directory
+        run: cp -r target/allure-results target/site/allure-maven-plugin/allure-results
+
+      # Deploy Allure report and results
+      - name: Deploy Allure Report and Results
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: target/site/allure-maven-plugin
+          publish_branch: gh-pages
+          disable_nojekyll: true
+
+      # Upload Allure results for server
+      - name: Upload Allure Results Folder for Server
+        uses: actions/upload-artifact@v3
+        with:
+          name: allure-results-for-server
+          path: target/allure-results
