@@ -1,0 +1,92 @@
+name: Playwright Develop Tests PR
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Java
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # Step 3: Clean Workspace
+      - name: Clean Workspace
+        run: mvn clean
+
+      # Step 4: Run Develop Tests
+      - name: Run Develop Tests
+        run: mvn test -Pdev -D"cucumber.filter.tags=@develop" || true
+
+      # Step 5: Verify Allure Results
+      - name: Check Allure Results
+        run: ls -l target/allure-results || echo "No allure-results found"
+
+      # Step 6: Upload Allure Results
+      - name: Upload Allure Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: allure-results
+          path: target/allure-results/**
+
+      # Step 7: Upload Test Report Artifacts
+      - name: Upload Test Report Artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: reports
+          path: target/surefire-reports/*.xml
+
+  generate_report:
+    name: Generate Test Results
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [ tests ]
+
+    steps:
+      # Step 1: Checkout code to get the POM
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Download Allure Results
+      - name: Download Allure Results
+        uses: actions/download-artifact@v3
+        id: download-allure
+        with:
+          name: allure-results
+          path: target/allure-results
+
+      # Step 3: Generate Allure Report
+      - name: Generate Allure Report
+        run: mvn allure:report
+
+      # Step 4: Generate Single-File Allure Report
+      - name: Generate Single-File Allure Report
+        run: |
+          mkdir -p target/single-file-report
+          wget --convert-links --page-requisites --no-parent \
+               --adjust-extension -P target/single-file-report \
+               file://$(pwd)/target/site/allure-maven-plugin/index.html
+        shell: bash
+
+      # Step 5: Deploy Single-File Allure Report
+      - name: Deploy Single-File Allure Report
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: target/single-file-report
+          publish_branch: gh-pages
+          disable_nojekyll: true
