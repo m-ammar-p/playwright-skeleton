@@ -1,4 +1,4 @@
-name: Poulta Develop Tests PR
+name: Develop Tests PR
 
 on:
   pull_request:

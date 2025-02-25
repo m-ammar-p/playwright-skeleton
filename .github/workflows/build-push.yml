@@ -1,4 +1,4 @@
-name: Poulta Regression Tests Push
+name: Regression Tests Push
 
 on:
   push:

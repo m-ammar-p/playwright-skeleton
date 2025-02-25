@@ -1,4 +1,4 @@
-name: Poulta Regression Test Dispatch
+name: Regression Test Dispatch
 
 on:
   workflow_dispatch:
