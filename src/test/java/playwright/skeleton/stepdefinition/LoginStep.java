@@ -2,9 +2,9 @@ package playwright.skeleton.stepdefinition;
 
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
+import org.junit.jupiter.api.Assertions;
 import playwright.skeleton.cucumber.TestContext;
 import playwright.skeleton.pageobject.AbstractLoginPage;
-import org.junit.Assert;
 
 public class LoginStep {
 
@@ -17,13 +17,13 @@ public class LoginStep {
     }
 
     @Given("^I log in with (.*) username$")
-    public void iLogInWithUsername(String username) throws Exception {
+    public void iLogInWithUsername(String username) {
         LoginPage.loginWithUsername(username);
     }
 
     @Then("I check login is correct")
     public void iCheckLoginIsCorrect() {
-        Assert.assertTrue(LoginPage.checkLoginPerform());
+        Assertions.assertTrue(LoginPage.checkLoginPerform());
     }
 }
 
