@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
-    <artifactId>playwirght-skeleton</artifactId>
+    <artifactId>playwright-skeleton</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
@@ -18,13 +18,12 @@
         <!-- Version Properties -->
         <lombok.version>1.18.36</lombok.version>
         <cucumber.version>7.20.1</cucumber.version>
-        <junit.version>4.13.2</junit.version>
+        <junit.jupiter.version>5.9.3</junit.jupiter.version>
+        <junit.platform.version>1.9.3</junit.platform.version>
         <playwright.version>1.48.0</playwright.version>
         <slf4j.version>2.0.16</slf4j.version>
         <logback.version>1.5.12</logback.version>
         <allure.version>2.29.1</allure.version>
-        <allure.cucumber.version>2.29.1</allure.cucumber.version>
-        <allure.java.commons.version>2.29.1</allure.java.commons.version>
         <allure.maven.version>2.15.2</allure.maven.version>
     </properties>
 
@@ -37,29 +36,47 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Cucumber Dependencies -->
-        <dependency>
-            <groupId>io.cucumber</groupId>
-            <artifactId>cucumber-picocontainer</artifactId>
-            <version>${cucumber.version}</version>
-        </dependency>
+        <!-- Cucumber Dependencies for JUnit 5 -->
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-java</artifactId>
             <version>${cucumber.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.cucumber</groupId>
-            <artifactId>cucumber-junit</artifactId>
+            <artifactId>cucumber-junit-platform-engine</artifactId>
             <version>${cucumber.version}</version>
             <scope>test</scope>
         </dependency>
 
-        <!-- JUnit -->
+        <!-- Dependency Injection for Cucumber (Restored cucumber-picocontainer) -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-picocontainer</artifactId>
+            <version>${cucumber.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- JUnit 5 (Jupiter) Dependencies -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- JUnit Platform Suite API (for @Suite annotation) -->
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite</artifactId>
+            <version>${junit.platform.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -74,15 +91,11 @@
         <dependency>
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-cucumber7-jvm</artifactId>
-            <version>${allure.cucumber.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.qameta.allure</groupId>
-            <artifactId>allure-java-commons</artifactId>
-            <version>${allure.java.commons.version}</version>
+            <version>${allure.version}</version>
+            <scope>test</scope>
         </dependency>
 
-        <!-- Logging Dependencies -->
+        <!-- SLF4J and Logback for logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -104,17 +117,18 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <source>21</source>
-                    <target>21</target>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
                 </configuration>
             </plugin>
 
-            <!-- Maven Surefire Plugin -->
+            <!-- Maven Surefire Plugin (for running tests) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.2</version>
+                <version>3.0.0-M7</version>
                 <configuration>
+                    <useModulePath>false</useModulePath>
                     <includes>
                         <include>**/RunMainTest.class</include>
                     </includes>
