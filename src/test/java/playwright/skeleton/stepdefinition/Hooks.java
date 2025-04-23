@@ -4,7 +4,6 @@ import com.microsoft.playwright.*;
 import io.cucumber.java.*;
 import playwright.skeleton.cucumber.TestContext;
 import java.awt.*;
-import java.io.ByteArrayInputStream;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.logging.Logger;
@@ -109,14 +108,5 @@ public class Hooks {
             if (playwright != null) playwright.close();
         }
         LOGGER.info("Test teardown complete.");
-    }
-
-    @AfterStep
-    public void takeScreenshotAfterStep(Scenario scenario) {
-        if (scenario.isFailed()) {
-            byte[] screenshot = page.screenshot(new Page.ScreenshotOptions().setPath(Paths.get("target/screenshots/" + scenario.getName() + "_step.png")));
-            scenario.attach(screenshot, "image/png", scenario.getName() + "_step");
-            io.qameta.allure.Allure.addAttachment(scenario.getName() + "_step", "image/png", new ByteArrayInputStream(screenshot), "png");
-        }
     }
 }
