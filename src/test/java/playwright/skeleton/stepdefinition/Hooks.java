@@ -3,6 +3,8 @@ package playwright.skeleton.stepdefinition;
 import com.microsoft.playwright.*;
 import io.cucumber.java.*;
 import playwright.skeleton.cucumber.TestContext;
+import playwright.skeleton.dataproviders.ConfigFileReader;
+
 import java.awt.*;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -23,26 +25,14 @@ public class Hooks {
         this.testContext = testContext;
     }
 
-//    @BeforeAll
-//    public static void beforeAll() {
-//
-//        String applicationUrl = ConfigFileReader.getApplicationUrl();
-//        String implicitlyWait = ConfigFileReader.getImplicitlyWait().toString();
-//        String waitSeconds = ConfigFileReader.getWaitSeconds().toString();
-//
-//    }
-
     @Before
     public void setUpTest() {
-        // Initialize Playwright and browser
         playwright = Playwright.create();
 
-        // Detect if the environment is CI
         boolean isCI = System.getenv("CI") != null;
 
-        // Configure browser options
         BrowserType.LaunchOptions options = new BrowserType.LaunchOptions()
-                .setHeadless(isCI)  // Use headless mode in CI
+                .setHeadless(isCI)
                 .setArgs(Arrays.asList(
                         "--no-sandbox",
                         "--disable-dev-shm-usage",
@@ -50,42 +40,22 @@ public class Hooks {
                         "--enable-automation"
                 ));
 
-        // Launch the browser with the specified options
         browser = playwright.chromium().launch(options);
-
-        // Create a new browser context and page
         context = browser.newContext();
         page = context.newPage();
-
-        // Set the page in TestContext
         testContext.setPage(page);
 
-        // Set window size for local tests
         if (!isCI) {
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
             int screenWidth = (int) screenSize.getWidth();
             int screenHeight = (int) screenSize.getHeight();
-
-            int buffer = 20; // Adjust this value based on your screen
+            int buffer = 20;
             page.setViewportSize(screenWidth - buffer, screenHeight - buffer);
         }
 
-        // Navigate to the base URL
-//        String baseUrl = ConfigFileReader.getApplicationUrl();
-//        page.navigate(baseUrl);
-
-        // Retrieve the environment property with "dev" as the default
-        String env = System.getProperty("env", "dev");
-
-// Determine the base URL based on the environment
-        String baseUrl = "ua".equals(env)
-                ? "https://adactinhotelapp.com/HotelAppBuild2/"
-                : "https://adactinhotelapp.com/";
-
-// Log the selected environment and URL for debugging
-        LOGGER.info(String.format("Environment: %s%nUsing base URL: %s", env, baseUrl));
-
-// Navigate to the base URL
+        // Now using config file for base URL
+        String baseUrl = ConfigFileReader.getApplicationUrl();
+        LOGGER.info("Navigating to base URL: " + baseUrl);
         page.navigate(baseUrl);
         LOGGER.info("Test setup complete.");
     }
@@ -93,12 +63,10 @@ public class Hooks {
     @After
     public void tearDownTest(Scenario scenario) {
         try {
-            if (page != null) {
-                if (scenario.isFailed()) {
-                    byte[] screenshot = page.screenshot(new Page.ScreenshotOptions()
-                            .setPath(Paths.get("target/screenshots/" + scenario.getName() + ".png")));
-                    scenario.attach(screenshot, "image/png", "Failure Screenshot");
-                }
+            if (page != null && scenario.isFailed()) {
+                byte[] screenshot = page.screenshot(new Page.ScreenshotOptions()
+                        .setPath(Paths.get("target/screenshots/" + scenario.getName() + ".png")));
+                scenario.attach(screenshot, "image/png", "Failure Screenshot");
             }
         } catch (Exception e) {
             LOGGER.severe("Failed to take screenshot: " + e.getMessage());
