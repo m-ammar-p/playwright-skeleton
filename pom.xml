@@ -158,35 +158,26 @@
     </build>
 
     <profiles>
+        <!-- Default: dev environment -->
         <profile>
             <id>dev</id>
             <activation>
-                <property>
-                    <name>env</name>
-                    <value>dev</value>
-                </property>
+                <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <urlCompany>https://adactinhotelapp.com/</urlCompany>
                 <env>dev</env>
             </properties>
         </profile>
 
+        <!-- QA environment -->
         <profile>
-            <id>ua</id>
-            <activation>
-                <property>
-                    <name>env</name>
-                    <value>ua</value>
-                </property>
-            </activation>
+            <id>qa</id>
             <properties>
-                <urlCompany>https://adactinhotelapp.com/HotelAppBuild2/</urlCompany>
-                <env>ua</env>
+                <env>qa</env>
             </properties>
         </profile>
     </profiles>
-
+    
     <pluginRepositories>
         <pluginRepository>
             <id>maven-central</id>
