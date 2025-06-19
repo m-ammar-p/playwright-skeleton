@@ -4,10 +4,12 @@ import com.microsoft.playwright.*;
 import io.cucumber.java.*;
 import playwright.skeleton.cucumber.TestContext;
 import playwright.skeleton.dataproviders.ConfigFileReader;
+import playwright.skeleton.dataproviders.AllureEnvironmentWriter;
 
 import java.awt.*;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.logging.Logger;
 
 public class Hooks {
@@ -53,7 +55,14 @@ public class Hooks {
             page.setViewportSize(screenWidth - buffer, screenHeight - buffer);
         }
 
-        // Now using config file for base URL
+        // Write Allure environment.xml
+        AllureEnvironmentWriter.write(Map.of(
+                "Environment", ConfigFileReader.getEnvironment(),
+                "Base URL", ConfigFileReader.getApplicationUrl(),
+                "Browser", "Chromium"
+        ));
+
+        // Navigate to the base URL
         String baseUrl = ConfigFileReader.getApplicationUrl();
         LOGGER.info("Navigating to base URL: " + baseUrl);
         page.navigate(baseUrl);
