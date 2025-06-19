@@ -1,2 +1,2 @@
 "DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
-"","14875","Verify user able to login","","Thu Jun 19 11:18:57 UTC 2025","passed","Thu Jun 19 11:19:12 UTC 2025","","Login with an user","Verify user able to login",""
+"","18589","Verify user able to login","","Thu Jun 19 11:21:04 UTC 2025","passed","Thu Jun 19 11:21:22 UTC 2025","","Login with an user","Verify user able to login",""
