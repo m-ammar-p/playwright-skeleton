@@ -27,6 +27,15 @@ public class Hooks {
         this.testContext = testContext;
     }
 
+    @BeforeAll
+    public static void writeAllureEnvironment() {
+        AllureEnvironmentWriter.write(Map.of(
+                "Environment", ConfigFileReader.getEnvironment(),
+                "Base URL", ConfigFileReader.getApplicationUrl(),
+                "Browser", "Chromium"
+        ));
+    }
+
     @Before
     public void setUpTest() {
         playwright = Playwright.create();
@@ -55,14 +64,6 @@ public class Hooks {
             page.setViewportSize(screenWidth - buffer, screenHeight - buffer);
         }
 
-        // Write Allure environment.xml
-        AllureEnvironmentWriter.write(Map.of(
-                "Environment", ConfigFileReader.getEnvironment(),
-                "Base URL", ConfigFileReader.getApplicationUrl(),
-                "Browser", "Chromium"
-        ));
-
-        // Navigate to the base URL
         String baseUrl = ConfigFileReader.getApplicationUrl();
         LOGGER.info("Navigating to base URL: " + baseUrl);
         page.navigate(baseUrl);
