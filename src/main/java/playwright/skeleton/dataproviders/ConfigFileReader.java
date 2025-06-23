@@ -6,7 +6,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.time.Duration;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -19,7 +18,6 @@ public class ConfigFileReader {
         String environment = System.getProperty("env", "dev");
         LOGGER.info("Active Environment: " + environment);
 
-        // Updated path to use profiles/env/{environment}/company.properties
         String propertiesFilePath = Paths.get(
                 System.getProperty("user.dir"),
                 "profiles", "env", environment, "company.properties"
@@ -33,7 +31,8 @@ public class ConfigFileReader {
         }
     }
 
-    private ConfigFileReader() {}
+    private ConfigFileReader() {
+    }
 
     public static String getApplicationUrl() {
         String url = properties.getProperty("urlCompany");
@@ -47,15 +46,19 @@ public class ConfigFileReader {
         throw new CompanyException("environment not specified in the properties file.");
     }
 
-    public static Duration getImplicitlyWait() {
+    public static Long getImplicitlyWait() {
         String implicitlyWait = properties.getProperty("implicitlyWait");
-        if (implicitlyWait != null) return Duration.ofSeconds(Long.parseLong(implicitlyWait));
+        if (implicitlyWait != null) {
+            return Long.parseLong(implicitlyWait) * 1000; // seconds to ms
+        }
         throw new CompanyException("implicitlyWait not specified in the properties file.");
     }
 
     public static Long getWaitSeconds() {
         String waitSeconds = properties.getProperty("waitSeconds");
-        if (waitSeconds != null) return Long.parseLong(waitSeconds);
+        if (waitSeconds != null) {
+            return Long.parseLong(waitSeconds) * 1000; // seconds to ms
+        }
         throw new CompanyException("waitSeconds not specified in the properties file.");
     }
 }
