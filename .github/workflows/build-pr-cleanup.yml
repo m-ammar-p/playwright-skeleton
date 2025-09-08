@@ -1,0 +1,80 @@
+name: Cleanup PR Allure Report
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup-pr-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+        continue-on-error: true
+
+      - name: Remove PR folder(s) and rebuild index
+        shell: bash
+        run: |
+          cd gh-pages || { echo "No gh-pages branch yet. Nothing to clean."; exit 0; }
+
+          PR_NUM="${{ github.event.pull_request.number }}"
+          HEAD_REF="${{ github.event.pull_request.head.ref }}"
+          BRANCH_SLUG="${HEAD_REF//\//-}"
+
+          CHANGED=0
+          for t in "pr/pr-${PR_NUM}" "pr/${BRANCH_SLUG}"; do
+            if [ -d "$t" ]; then
+              echo "Removing $t"
+              rm -rf "$t"
+              CHANGED=1
+            fi
+          done
+
+          # Rebuild index.html if anything was removed
+          if [ "$CHANGED" -eq 1 ]; then
+            {
+              echo '<!doctype html><meta charset="utf-8"><title>Allure Reports</title>'
+              echo '<style>body{font-family:system-ui,Segoe UI,Arial;margin:32px}h2{margin:20px 0 6px}ul{line-height:1.8}</style>'
+              echo "<h1>Allure Reports</h1><p>Updated: $(date -u) UTC</p>"
+
+              # push & pr sections (first level only)
+              for section in push pr; do
+                if [ -d "$section" ]; then
+                  echo "<h2>${section^} Runs</h2><ul>"
+                  find "$section" -mindepth 1 -maxdepth 1 -type d | sort | while read -r d; do
+                    echo "<li><a href=\"./${d}/\">${d}</a></li>"
+                  done
+                  echo "</ul>"
+                fi
+              done
+
+              # manual env/tag two-level
+              if [ -d manual ]; then
+                echo "<h2>Manual/Dispatch Runs</h2><ul>"
+                for e in manual/*/; do
+                  [ -d "$e" ] || continue
+                  for t in "$e"*/; do
+                    [ -d "$t" ] || continue
+                    echo "<li><a href=\"./${t%/}/\">${t%/}</a></li>"
+                  done
+                done
+                echo "</ul>"
+              fi
+
+              echo '<p>Tip: PDFs (if enabled) live at <code>…/allure-report.pdf</code> inside each report folder.</p>'
+            } > index.html
+
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git add -A
+            git commit -m "Cleanup PR #${PR_NUM} report and rebuild index"
+            git push
+          else
+            echo "No PR report folders found to remove."
+          fi

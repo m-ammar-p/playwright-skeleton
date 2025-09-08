@@ -69,9 +69,10 @@ jobs:
               fi
             }
 
-            list_section "push"   "Push Runs"
-            list_section "pr"     "Pull Request Runs"
+            # Order: Manual first, then Push, then PR last
             list_manual
+            list_section "push" "Push Runs"
+            list_section "pr"   "Pull Request Runs"
 
             echo '<p>Tip: if PDF export is enabled, it will be at <code>…/allure-report.pdf</code> inside each report folder.</p>'
             echo '</body></html>'
@@ -93,8 +94,7 @@ jobs:
           {
             echo "### 📊 Allure Reports Landing Page"
             echo ""
-            echo "- Root: $ROOT_URL"
+            echo "- Manual runs: ${ROOT_URL}manual/"
             echo "- Push runs: ${ROOT_URL}push/"
             echo "- PR runs: ${ROOT_URL}pr/"
-            echo "- Manual runs: ${ROOT_URL}manual/"
           } >> "$GITHUB_STEP_SUMMARY"
