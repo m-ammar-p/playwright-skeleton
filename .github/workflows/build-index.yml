@@ -39,11 +39,11 @@ jobs:
             echo "<h1>Allure Reports</h1>"
             echo "<p>Updated: $(date -u) UTC</p>"
 
+            # First-level listing helper (push, pr)
             list_section () {
               local dir="$1" title="$2"
               if [ -d "gh-pages/$dir" ]; then
                 echo "<section><h2>$title</h2><ul>"
-                # list only first-level subfolders
                 find "gh-pages/$dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort | while read -r d; do
                   rel="${d#gh-pages/}"
                   echo "<li><a href=\"./$rel/\">$rel</a></li>"
@@ -52,9 +52,26 @@ jobs:
               fi
             }
 
+            # Two-level listing for manual: env/tag (links directly to report folders)
+            list_manual () {
+              local root="gh-pages/manual"
+              if [ -d "$root" ]; then
+                echo "<section><h2>Manual/Dispatch Runs</h2><ul>"
+                # envs
+                find "$root" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort | while read -r envdir; do
+                  # tags under each env
+                  find "$envdir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort | while read -r tagdir; do
+                    rel="${tagdir#gh-pages/}"
+                    echo "<li><a href=\"./$rel/\">$rel</a></li>"
+                  done
+                done
+                echo "</ul></section>"
+              fi
+            }
+
             list_section "push"   "Push Runs"
             list_section "pr"     "Pull Request Runs"
-            list_section "manual" "Manual/Dispatch Runs"
+            list_manual
 
             echo '<p>Tip: if PDF export is enabled, it will be at <code>…/allure-report.pdf</code> inside each report folder.</p>'
             echo '</body></html>'
