@@ -70,6 +70,30 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # Step 1.1: Compute subfolder (manual/<env>/<tag-sanitized>)
+      - name: Prepare publish key
+        id: prep
+        shell: bash
+        run: |
+          ENV_SLUG="${{ inputs.environment }}"
+          TAG_RAW="${{ inputs.tag }}"
+          # sanitize tag: drop '@', replace spaces/slashes with '-', to lowercase
+          TAG_SANITIZED="$(echo "${TAG_RAW//@/}" | tr '[:space:]/' '--' | tr '[:upper:]' '[:lower:]')"
+          echo "subdir=manual/${ENV_SLUG}/${TAG_SANITIZED}" >> $GITHUB_OUTPUT
+
+      # Step 1.2: Pull previous history from gh-pages/<subdir>/history
+      - name: Get previous Allure history
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+        continue-on-error: true
+
+      - name: Copy history into new results
+        run: |
+          mkdir -p target/allure-results/history
+          cp -r "gh-pages/${{ steps.prep.outputs.subdir }}/history/"* target/allure-results/history/ 2>/dev/null || true
+
       # Step 2: Download Allure Results
       - name: Download Allure Results
         uses: actions/download-artifact@v4
@@ -86,13 +110,15 @@ jobs:
       - name: Copy Allure Results to Publish Directory
         run: cp -r target/allure-results target/site/allure-maven-plugin/allure-results
 
-      # Step 5: Deploy Allure Report
+      # Step 5: Deploy Allure Report (to gh-pages under /manual/<env>/<tag>)
       - name: Deploy Allure Report
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: target/site/allure-maven-plugin
           publish_branch: gh-pages
+          publish_dir: target/site/allure-maven-plugin
+          destination_dir: ${{ steps.prep.outputs.subdir }}
+          keep_files: true
           disable_nojekyll: true
 
       # Step 6: Upload Allure Results for Server
