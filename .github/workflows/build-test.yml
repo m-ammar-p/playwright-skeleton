@@ -77,8 +77,9 @@ jobs:
         run: |
           ENV_SLUG="${{ inputs.environment }}"
           TAG_RAW="${{ inputs.tag }}"
-          # sanitize tag: drop '@', replace spaces/slashes with '-', to lowercase
-          TAG_SANITIZED="$(echo "${TAG_RAW//@/}" | tr '[:space:]/' '--' | tr '[:upper:]' '[:lower:]')"
+          # Trim leading/trailing whitespace, drop '@', replace spaces/slashes with '-', lowercase
+          TAG_CLEANED="$(echo "${TAG_RAW}" | xargs)"
+          TAG_SANITIZED="$(echo "${TAG_CLEANED//@/}" | tr '[:space:]/' '-' | tr '[:upper:]' '[:lower:]')"
           echo "subdir=manual/${ENV_SLUG}/${TAG_SANITIZED}" >> $GITHUB_OUTPUT
 
       # Step 1.2: Pull previous history from gh-pages/<subdir>/history
