@@ -1,0 +1,83 @@
+name: Rebuild Allure Root Index
+
+on:
+  # Rebuild the index after any of your three publish workflows complete
+  workflow_run:
+    workflows:
+      - Regression Tests Push
+      - Develop Tests PR
+      - Regression Test Dispatch
+    types: [completed]
+
+  # Allow manual rebuild if you ever need it
+  workflow_dispatch: {}
+
+jobs:
+  build-index:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout gh-pages (where reports live)
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+        continue-on-error: true
+
+      - name: Generate index.html
+        shell: bash
+        run: |
+          mkdir -p gh-pages
+          mkdir -p _root_index
+
+          {
+            echo '<!doctype html><html><head><meta charset="utf-8"><title>Allure Reports</title>'
+            echo '<meta name="viewport" content="width=device-width, initial-scale=1" />'
+            echo '<style>body{font-family:system-ui,Segoe UI,Arial;margin:40px}h1{margin:0 0 16px}'
+            echo 'section{margin:24px 0}ul{line-height:1.9}code{background:#f4f4f4;padding:2px 6px;border-radius:6px}'
+            echo 'a{text-decoration:none}a:hover{text-decoration:underline} .path{color:#555;font-size:0.9em}</style></head><body>'
+            echo "<h1>Allure Reports</h1>"
+            echo "<p>Updated: $(date -u) UTC</p>"
+
+            list_section () {
+              local dir="$1" title="$2"
+              if [ -d "gh-pages/$dir" ]; then
+                echo "<section><h2>$title</h2><ul>"
+                # list only first-level subfolders
+                find "gh-pages/$dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort | while read -r d; do
+                  rel="${d#gh-pages/}"
+                  echo "<li><a href=\"./$rel/\">$rel</a></li>"
+                done
+                echo "</ul></section>"
+              fi
+            }
+
+            list_section "push"   "Push Runs"
+            list_section "pr"     "Pull Request Runs"
+            list_section "manual" "Manual/Dispatch Runs"
+
+            echo '<p>Tip: if PDF export is enabled, it will be at <code>…/allure-report.pdf</code> inside each report folder.</p>'
+            echo '</body></html>'
+          } > _root_index/index.html
+
+      - name: Publish index.html to gh-pages root
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: _root_index      # only index.html
+          keep_files: true              # keep existing reports under /push, /pr, /manual
+          disable_nojekyll: true
+
+      - name: Add link to job summary
+        shell: bash
+        run: |
+          ROOT_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/"
+          {
+            echo "### 📊 Allure Reports Landing Page"
+            echo ""
+            echo "- Root: $ROOT_URL"
+            echo "- Push runs: ${ROOT_URL}push/"
+            echo "- PR runs: ${ROOT_URL}pr/"
+            echo "- Manual runs: ${ROOT_URL}manual/"
+          } >> "$GITHUB_STEP_SUMMARY"
