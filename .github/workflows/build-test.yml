@@ -4,11 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to run the tests (e.g., dev or qa)'
-        type: string
+        description: 'Environment to run the tests'
+        type: choice
+        options:
+          - dev
+          - qa
+          - ua
         required: true
       tag:
-        description: 'Tag to filter tests (e.g., Regression, include @ if required)'
+        description: 'Tag to filter tests (e.g., @Regression)'
         type: string
         required: true
 
@@ -112,6 +116,14 @@ jobs:
       # Step 3: Generate Allure Report
       - name: Generate Allure Report
         run: mvn allure:report
+
+      # Guard Step: Skip deploy if no report was generated
+      - name: Verify Allure site exists
+        run: |
+          if [ ! -f target/site/allure-maven-plugin/index.html ]; then
+            echo "❌ No Allure index.html generated — skipping deploy."
+            exit 1
+          fi
 
       # Step 4: Copy Allure Results to Publish Directory
       - name: Copy Allure Results to Publish Directory
